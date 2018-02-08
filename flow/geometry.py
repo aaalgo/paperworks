@@ -11,22 +11,18 @@ def create_pdf (batch):
 
 '''
     ++ B ++
-    + BBB +
 
 
 
 
     +     +
-    ++   ++
+    ++ B ++
 '''
 W, H = PAPER_SIZE
 X0, Y0 = MARGIN
 X1, Y1 = W - X0, H - Y0
 GAP = ANCHOR_SIZE * 0.5
 RELAX = 0.5 * GAP
-BAR_X = X0 + GAP + RELAX
-BAR_Y = Y0
-SCALE_W = 2 * inch
 
 def barcode_encode (batch_page):
     return '%d %d' % (batch_page.batch.id, batch_page.page.id)
@@ -36,17 +32,19 @@ ANCHOR_LINES = []
 
 IMAGE_X0 = X0
 IMAGE_X1 = W - X0
-IMAGE_Y0 = Y0 + 2.5 * ANCHOR_SIZE + RELAX 
-IMAGE_Y1 = Y1 - 0.5 * ANCHOR_SIZE - RELAX 
+IMAGE_Y0 = Y0 + BAR_HEIGHT + RELAX 
+IMAGE_Y1 = Y1 - BAR_HEIGHT - RELAX 
 IMAGE_W = IMAGE_X1 - IMAGE_X0
 IMAGE_H = IMAGE_Y1 - IMAGE_Y0
+SCALE_X = X0 + 3 * ANCHOR_SIZE + GAP
+BAR_X = SCALE_X + 2 * (SCALE_W + ANCHOR_SIZE) + SCALE_W
 
 def gen_anchors ():
-    for X, Y, dx, dy, dir in [(X0, Y0, 1, 1, 1),
-                              (X1, Y0, -1, 1, 1),
-                              (X0, Y1, 1, -1, 0),
-                              (X1, Y1, -1, -1, 0)]:
-        for s in [0, 1, 2]:
+    for X, Y, dx, dy, dir,n in [(X0+GAP, Y0+GAP, 1, 1, 0, 3),
+                              (X1-GAP, Y0+GAP, -1, 1, 0, 3),
+                              (X0+GAP, Y1-GAP, 1, -1, 0, 3),
+                              (X1-GAP, Y1-GAP, -1, -1, 0, 3)]:
+        for s in range(n):
             x = X + dx * s * (1-dir) * ANCHOR_SIZE
             y = Y + dy * s * dir * ANCHOR_SIZE
             ANCHORS.append((x, y))
@@ -70,30 +68,23 @@ def draw_grayscale (pdf, x, y, width, height, steps):
         pass
 
 def draw_grayscales (pdf):
-    x = BAR_X
-    y = BAR_Y
-    for _ in range(3):
-        draw_grayscale(pdf, x, y, SCALE_W, BAR_HEIGHT, 32)
-        x += SCALE_W + GAP
-        pass
-    x = BAR_X
-    y += BAR_HEIGHT + RELAX
-    for _ in range(3):
-        draw_grayscale(pdf, x, y, SCALE_W, BAR_HEIGHT, 32)
-        x += SCALE_W + GAP
-        pass
-    return x, y
-
+    SCALE_X = X0 + 3 * ANCHOR_SIZE + GAP
+    for y, n in [(Y0, 2), (Y1-BAR_HEIGHT, 4)]:
+        x = SCALE_X 
+        for _ in range(n):
+            draw_grayscale(pdf, x, y, SCALE_W, BAR_HEIGHT, 32)
+            x += SCALE_W + ANCHOR_SIZE
+            pass
 
 def render_page (pdf, batch_page):
     print(W, H, X0, Y0, X1, Y1)
     # batch-page-
-    x, y = draw_grayscales(pdf)
+    draw_grayscales(pdf)
 
     barcode=code39.Extended39(barcode_encode(batch_page),barWidth=BAR_WIDTH,barHeight=BAR_HEIGHT)
     pdf.setStrokeColorRGB(0,0,0)
     pdf.setFillColorRGB(0,0,0)
-    barcode.drawOn(pdf, (X0+X1)/2, Y1-GAP)
+    barcode.drawOn(pdf, BAR_X, Y0)
     draw_anchors(pdf)
 
     #pdf.rect(IMAGE_X0, IMAGE_Y0, IMAGE_X1-IMAGE_X0, IMAGE_Y1-IMAGE_Y0)
@@ -106,13 +97,13 @@ def render_page (pdf, batch_page):
 
         #bm = cv2.imread(image.path, cv2.IMREAD_GRAYSCALE).astype(np.float32)
         #cv2.normalize(bm, None, MIN_COLOR, 1.0, cv2.NORM_MINMAX)
-        w0, h0 = image.width, image.height
+        #w0, h0 = image.width, image.height
         #w, h -> IMAGE_W, IMAGE_H
         #
-        ratio = min(IMAGE_H/h0, IMAGE_W/w0, MAX_SCALE)
-        print("XXX",ratio)
+        #ratio = min(IMAGE_H/h0, IMAGE_W/w0, MAX_SCALE)
+        ratio = 1.0 / PPI * inch
 
-        pdf.drawImage(image.embed_path(), IMAGE_X0, IMAGE_Y0, width=w0 * ratio, height=h0* ratio)
+        pdf.drawImage(image.embed_path(image.rotate), image.page_x, image.page_y, width=image.page_w, height=image.page_h)
 
     pass
 

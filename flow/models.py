@@ -12,8 +12,15 @@ class Image (models.Model):
     page = models.ForeignKey(Page, on_delete=models.SET_NULL, null=True)
     width = models.IntegerField()
     height = models.IntegerField()
+    page_x = models.FloatField(null=True)
+    page_y = models.FloatField(null=True)
+    page_w = models.FloatField(null=True)
+    page_h = models.FloatField(null=True)
+    rotate = models.BooleanField(default=False)
 
-    def embed_path (self):
+    def embed_path (self, rotate):
+        if rotate:
+            return 'embed/%d-r.png' % self.id
         return 'embed/%d.png' % self.id
 
     def gen_embed (self):
@@ -22,7 +29,8 @@ class Image (models.Model):
         if mean < 128:
             image = 255 - image
         image = cv2.normalize(image, None, MIN_COLOR * 255, 255, cv2.NORM_MINMAX)
-        cv2.imwrite(self.embed_path(), image)
+        cv2.imwrite(self.embed_path(False), image)
+        cv2.imwrite(self.embed_path(True), cv2.transpose(image))
     pass
 
 class Batch (models.Model):
