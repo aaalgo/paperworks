@@ -42,3 +42,9 @@ class BatchPage (models.Model):
     page = models.ForeignKey(Page, on_delete=models.PROTECT, null=True)
     pass
 
+class Scan (models.Model):
+    path = models.CharField(max_length=2500, unique=True)
+    batch = models.ForeignKey(Batch, on_delete=models.PROTECT, null=True)
+    page = models.ForeignKey(Page, on_delete=models.PROTECT, null=True)
+
+

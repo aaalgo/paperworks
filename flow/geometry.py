@@ -3,6 +3,8 @@ from reportlab.graphics.barcode import code39
 from django.utils import timezone
 from flow.models import *
 from params import *
+import numpy as np
+import cv2
 
 def create_pdf (batch):
     path = 'jobs/%04d-%s.pdf' % (batch.id, timezone.localtime(batch.timestamp).strftime('%Y%m%d%H%M%S'))
@@ -26,6 +28,10 @@ RELAX = 0.5 * GAP
 
 def barcode_encode (batch_page):
     return '%d %d' % (batch_page.batch.id, batch_page.page.id)
+
+def barcode_decode (symbol):
+    x, y = symbol.split(' ')
+    return int(x), int(y)
 
 ANCHORS = []
 ANCHOR_LINES = []
@@ -125,3 +131,16 @@ def create_scales_pdf (path):
     pdf.save()
 
     pass
+
+
+def enhance_color (image):
+    inf = np.clip((image.astype(np.float32) + 20), 0, 255)
+    hsv = cv2.cvtColor(inf, cv2.COLOR_BGR2HSV)
+    H = hsv[:,:,0]
+    S = hsv[:,:,1]
+    V = hsv[:,:,2]
+    H[S < 0.1] = 0
+    S[S < 0.1] = 0
+    V[:,:] = 255
+    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
