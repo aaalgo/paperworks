@@ -108,3 +108,20 @@ def render_page (pdf, batch_page):
     pass
 
 
+def create_scales_pdf (path):
+    W, H = min(PAPER_SIZE), max(PAPER_SIZE)
+    pdf = canvas.Canvas(path, pagesize=(W, H), bottomup=0)
+
+    y = Y0 + ANCHOR_SIZE
+    for _ in range(8):
+        x = X0 + ANCHOR_SIZE
+        for _ in range(2):
+            draw_grayscale(pdf, x, y, SCALE_W * 2, BAR_HEIGHT, 32)
+            x += SCALE_W * 2 + ANCHOR_SIZE
+            pass
+        y += BAR_HEIGHT + ANCHOR_SIZE
+        pass
+    pdf.showPage()
+    pdf.save()
+
+    pass

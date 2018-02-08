@@ -8,6 +8,50 @@ import simplejson as json
 from flow.models import *
 from flow.geometry import *
 
+def pack (page_size, images):     # item: (id, w, h)
+    # return pages
+    #        page: [items]
+    #        item: id, x, y, rotated
+    PAGE_W, PAGE_H = page_size
+    pages = []
+    bins = []   # [page, x, y, w, h, size]
+    # reverse sort by size
+    for uid, w, h in sorted(images, key=lambda im: -im[1] * im[2]):
+        assert w <= PAGE_W
+        assert h <= PAGE_H
+        # try to find a bin that fits image
+        best = None
+        best_size = None
+        for i, (_, _, _, W, H, size) in enumerate(bins):
+            if (w < W and h < H) or (w < H and h < W):
+                if best is None or size < best_size:
+                    best = i
+                    best_size = size
+                    pass
+                pass
+            pass
+        if best is None:
+            best = len(bins)
+            bins.append([len(pages), 0, 0, PAGE_W, PAGE_H, PAGE_W * PAGE_H])
+            pages.append([])
+            pass
+        # split
+        page, x, y, W, H, S = bins[best]
+
+        rotate =False
+        if w < W and h < H:
+            pass
+        else:
+            rotate = True
+            w, h = h, w
+            pass
+        # do not rotate
+        pages[page].append([uid, x, y, rotate])
+        bins.append([page, x, y + h, w, H-h, w * (H-h)])
+        bins[best] = [page, x+w, y, W-w, H, (W-w)*H]
+        pass
+    return pages
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--run', action='store_true', default=False, help='')
@@ -17,42 +61,23 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         pages = []
         C = 0
-        #cmd = "RectangleBinPack/BinPackTest";
-        bin_spec = '0:unit:-1:%fx%f:1' % (IMAGE_W, IMAGE_H)
-        #cmd += " %f %f" % (IMAGE_W, IMAGE_H)
-        item_specs = []
         images = list(Image.objects.all())
+        items = []
         for i, image in enumerate(images):
             pages.append([image])
             w = image.width / PPI * inch
             h = image.height / PPI * inch
             image.page_w = w
             image.page_h = h
-            #cmd += ' %f %f' % (w, h)
-            item_specs.append('%d:unit:0:1:%fx%f:1' % (i, w, h))
+            items.append((i, w, h))
             C += 1
             pass
-        cmd = 'Pack/packit4me --bins %s --items %s --o result' % (bin_spec, ','.join(item_specs))
-        #print("%d images placed into %d pages." % (C, len(pages)))
-        #print(cmd)
-        sp.check_call(cmd, shell=True)
-        with open('result', 'r') as f:
-            result = json.load(f)
-        #print(result)
-        print("Total items: %d" % C)
-
-        # do not run, just show statistics
-        missing = set(range(len(images)))
         P = 0
         C = 0
-        for packed in result['packed']:
-            items = packed['items']
-            for item in items:
-                uid = int(item['user_id'])
+        pages = pack((IMAGE_W, IMAGE_H), items)
+        for items in pages:
+            for uid, x, y, rotate in items:
                 image = images[uid]
-                x = item['W']
-                y = item['H']
-                rotate = (item['rotation'].lower() == 'yes')
                 image.rotate = rotate
                 image.page_x = IMAGE_X0 + x
                 image.page_y = IMAGE_Y0 + y
@@ -67,20 +92,16 @@ class Command(BaseCommand):
                 print(IMAGE_X1, IMAGE_Y1)
                 #assert right < IMAGE_X1 * 1.01
                 #assert bottom < IMAGE_Y1 * 1.01
-                missing.remove(uid)
                 pass
             P += 1
             C += len(items)
             pass
         print("%d items packed." % C)
         print("%d pages used." % P)
-        print("%d items unpacked." % len(missing))
         if options['run']:
-            for packed in result['packed']:
-                items = packed['items']
+            for items in pages:
                 page = Page.objects.create(done=False)
-                for item in items:
-                    uid = int(item['user_id'])
+                for uid, _, _, _ in items:
                     image = images[uid]
                     image.page = page
                     image.save()
