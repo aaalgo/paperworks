@@ -132,8 +132,25 @@ def create_scales_pdf (path):
 
     pass
 
+def gen_colormap (path, H, S):
+    L=500
+    vis = np.zeros((L,L,3), dtype=np.float32)
+    Y, X = H.shape
+    for i in range(Y):
+        h = H[i]
+        s = S[i]
+        for j in range(X):
+            vh = int(round(h[j] * (L-1)/360))
+            vs = int(round(s[j] * (L-1)))
+            vis[vh,vs,0] = h[j]
+            vis[vh,vs,1] = s[j]
+            pass
+        pass
+    vis[:,:,2] = 255.0
+    hsv = cv2.cvtColor(vis, cv2.COLOR_HSV2BGR)
+    cv2.imwrite(path, hsv)
 
-def enhance_color (image):
+def enhance_color (image, colormap=None):
     inf = np.clip((image.astype(np.float32) + 20), 0, 255)
     hsv = cv2.cvtColor(inf, cv2.COLOR_BGR2HSV)
     H = hsv[:,:,0]
@@ -142,5 +159,8 @@ def enhance_color (image):
     H[S < 0.1] = 0
     S[S < 0.1] = 0
     V[:,:] = 255
+    if not colormap is None:
+        gen_colormap(colormap, H, S)
+
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
