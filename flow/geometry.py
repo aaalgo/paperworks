@@ -24,7 +24,7 @@ W, H = PAPER_SIZE
 X0, Y0 = MARGIN
 X1, Y1 = W - X0, H - Y0
 GAP = ANCHOR_SIZE * 0.5
-RELAX = 0.5 * GAP
+RELAX = 0.3 * GAP
 
 def barcode_encode (batch_page):
     return '%d %d' % (batch_page.batch.id, batch_page.page.id)
@@ -34,7 +34,7 @@ def barcode_decode (symbol):
     return int(x), int(y)
 
 ANCHORS = []
-ANCHOR_LINES = []
+#ANCHOR_LINES = []
 
 IMAGE_X0 = X0
 IMAGE_X1 = W - X0
@@ -42,26 +42,29 @@ IMAGE_Y0 = Y0 + BAR_HEIGHT + RELAX
 IMAGE_Y1 = Y1 - BAR_HEIGHT - RELAX 
 IMAGE_W = IMAGE_X1 - IMAGE_X0
 IMAGE_H = IMAGE_Y1 - IMAGE_Y0
-SCALE_X = X0 + 3 * ANCHOR_SIZE + GAP
-BAR_X = SCALE_X + 2 * (SCALE_W + ANCHOR_SIZE) + SCALE_W
+SCALE_X = X0 + 3 * (ANCHOR_SIZE + RELAX) + GAP
+BAR_X = SCALE_X + 2 * (SCALE_W + ANCHOR_SIZE) + ANCHOR_SIZE
 
 def gen_anchors ():
     for X, Y, dx, dy, dir,n in [(X0+GAP, Y0+GAP, 1, 1, 0, 3),
-                              (X1-GAP, Y0+GAP, -1, 1, 0, 3),
+                              (X1-GAP, Y0+GAP, -1, 1, 0, 4),
                               (X0+GAP, Y1-GAP, 1, -1, 0, 3),
                               (X1-GAP, Y1-GAP, -1, -1, 0, 3)]:
         for s in range(n):
-            x = X + dx * s * (1-dir) * ANCHOR_SIZE
-            y = Y + dy * s * dir * ANCHOR_SIZE
+            x = X + dx * s * (1-dir) * (ANCHOR_SIZE + RELAX)
+            y = Y + dy * s * dir * (ANCHOR_SIZE + RELAX)
             ANCHORS.append((x, y))
-            ANCHOR_LINES.append((x-GAP, y, x+GAP, y))
-            ANCHOR_LINES.append((x, y-GAP, x, y+GAP))
+            #ANCHOR_LINES.append((x-GAP, y, x+GAP, y))
+            #ANCHOR_LINES.append((x, y-GAP, x, y+GAP))
+
 gen_anchors()
 
 def draw_anchors (pdf):
     pdf.setStrokeColorRGB(0,0,0)
-    for x0, y0, x1, y1 in ANCHOR_LINES:
-        pdf.line(x0, y0, x1, y1)
+    pdf.setFillColorRGB(0,0,0)
+    for x, y in ANCHORS:
+        pdf.circle(x, y, GAP, 1, 1)
+        #pdf.line(x0, y0, x1, y1)
     pass
 
 def draw_grayscale (pdf, x, y, width, height, steps):
