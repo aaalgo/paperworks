@@ -18,13 +18,25 @@ def zbar_scan (path):
 def estimate_transform (image):
     pass
 
-def register (path):
+def process (path):
     image = cv2.imread(path, cv2.IMREAD_COLOR).astype(np.float32)
-    transform = estimate_transform(image)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    rotate = rotate_normalize(gray)
+    image = rotate(image)
+    affine = calibrate(rotate(gray))
+
+    W, H = PAPER_SIZE
+    W = int(round(W * PPI / inch))
+    H = int(round(H * PPI / inch))
+
+    image = cv2.warpAffine(image, affine, (W, H))
+    cv2.imwrite('affine.png', image)
+
 
     color = enhance_color(image)
     cv2.imwrite('xxx.png', color)
 
+    sys.exit(0)
     symbol = zbar_scan(path)
     if symbol is None:
         print("ERROR, %s not recognized")
@@ -54,7 +66,7 @@ class Command(BaseCommand):
             for f in files:
                 path = os.path.join(root, f)
                 if Scan.objects.filter(path=path).count() == 0:
-                    register(path)
+                    process(path)
                 pass
             pass
         pass

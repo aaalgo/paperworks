@@ -19,4 +19,6 @@ MAX_SCALE = 1.0
 
 PPI = 100
 
+CALIB_PPI = 100
+
 IMAGE_MARGIN = 0.05 * inch

@@ -1,6 +1,8 @@
 from reportlab.pdfgen import canvas
 from reportlab.graphics.barcode import code39
 from django.utils import timezone
+from sklearn.linear_model import LinearRegression
+from skimage import measure
 from flow.models import *
 from params import *
 import numpy as np
@@ -53,7 +55,7 @@ def gen_anchors ():
         for s in range(n):
             x = X + dx * s * (1-dir) * (ANCHOR_SIZE + RELAX)
             y = Y + dy * s * dir * (ANCHOR_SIZE + RELAX)
-            ANCHORS.append((x, y))
+            ANCHORS.append([x, y])
             #ANCHOR_LINES.append((x-GAP, y, x+GAP, y))
             #ANCHOR_LINES.append((x, y-GAP, x, y+GAP))
 
@@ -166,4 +168,78 @@ def enhance_color (image, colormap=None):
         gen_colormap(colormap, H, S)
 
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+
+
+
+
+def detect_circles (image, off):
+    image = cv2.GaussianBlur(image, (9, 9), 0)
+    image = cv2.normalize(image, None, 0, 255, cv2.NORM_MINMAX)
+    binary = image < 50
+    labels = measure.label(binary, background=0)
+
+    centers = []
+    x0, y0 = off
+    print("XXX", image.shape)
+    for box in measure.regionprops(labels):
+        if box.area < 2000:
+            continue
+        print("\t", box.area, box.centroid)
+        y, x = box.centroid
+        centers.append([x0+x, y0+y])
+    return centers
+
+def detect_anchors (image):
+    H, W = image.shape[:2]
+    h = H//4
+    w = W//4
+    blocks = [(0, 0),
+              (W-w, 0),
+              (0, H-h),
+              (W-w, H-h)]
+    anchors = []
+    for i, (x, y) in enumerate(blocks):
+        aoi = image[y:(y+h), x:(x+w)]
+        print("XXX");
+        anchors.append(detect_circles(aoi, (x, y)))
+        pass
+    return anchors
+
+def rotate_clockwise (image):
+    image = cv2.transpose(image)
+    return cv2.flip(image, 1)
+
+def rotate_counterclockwise (image):
+    image = cv2.transpose(image)
+    return cv2.flip(image, 0)
+
+def rotate_normalize (image):
+    anchors = detect_anchors(image)
+    if len(anchors[0]) == 4:
+        return rotate_clockwise
+    elif len(anchors[3]) == 4:
+        return rotate_counterclockwise
+    pass
+
+def calibrate (image):
+    anchors = detect_anchors(image)
+    assert len(anchors[1]) == 4
+    X = np.array(sum(anchors, []), dtype=np.float32)
+    y1 = np.array([x * CALIB_PPI/inch for x , _ in ANCHORS], dtype=np.float32)
+    y2 = np.array([y * CALIB_PPI/inch for _ , y in ANCHORS], dtype=np.float32)
+    reg_x = LinearRegression()
+    reg_y = LinearRegression()
+    reg_x.fit(X, y1)
+    reg_y.fit(X, y2)
+    print(reg_x.coef_, reg_x.intercept_)
+    print(reg_y.coef_, reg_y.intercept_)
+    affine = np.zeros((2,3), dtype=np.float32)
+    affine[0, :2] = reg_x.coef_
+    affine[0, 2] = reg_x.intercept_
+    affine[1, :2] = reg_y.coef_
+    affine[1, 2] = reg_y.intercept_
+    return affine
+
+
 
