@@ -37,6 +37,7 @@ def barcode_decode (symbol):
 
 ANCHORS = []
 #ANCHOR_LINES = []
+SCALE_BOXES = []
 
 IMAGE_X0 = X0
 IMAGE_X1 = W - X0
@@ -70,6 +71,7 @@ def draw_anchors (pdf):
     pass
 
 def draw_grayscale (pdf, x, y, width, height, steps):
+    SCALE_BOXES.append([x, y, width, height])
     step = width / steps
     for i in range(steps):
         C = (1.0 - MIN_COLOR) * i/steps + MIN_COLOR
@@ -169,7 +171,14 @@ def enhance_color (image, colormap=None):
 
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
-
+def get_HSV (image, colormap=None):
+    inf = np.clip((image.astype(np.float32) + 20), 0, 255)
+    hsv = cv2.cvtColor(inf, cv2.COLOR_BGR2HSV)
+    H = hsv[:,:,0]
+    S = hsv[:,:,1]
+    V = hsv[:,:,2]
+    H[S < 0.1] = 0
+    return H
 
 
 
