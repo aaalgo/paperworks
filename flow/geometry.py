@@ -33,7 +33,7 @@ def barcode_encode (batch_page):
 
 def barcode_decode (symbol):
     x, y = symbol.split(' ')
-    return int(x), int(y)
+    return int(x), int(y[0])
 
 ANCHORS = []
 #ANCHOR_LINES = []
@@ -70,8 +70,19 @@ def draw_anchors (pdf):
         #pdf.line(x0, y0, x1, y1)
     pass
 
+def gen_scale_boxes ():
+    SCALE_X = X0 + 3 * ANCHOR_SIZE + GAP
+    for y, n in [(Y0, 2), (Y1-BAR_HEIGHT, 4)]:
+        x = SCALE_X 
+        for _ in range(n):
+            SCALE_BOXES.append([x, y, SCALE_W, BAR_HEIGHT])
+            x += SCALE_W + ANCHOR_SIZE
+            pass
+
+gen_scale_boxes()
+
+
 def draw_grayscale (pdf, x, y, width, height, steps):
-    SCALE_BOXES.append([x, y, width, height])
     step = width / steps
     for i in range(steps):
         C = (1.0 - MIN_COLOR) * i/steps + MIN_COLOR
@@ -81,13 +92,9 @@ def draw_grayscale (pdf, x, y, width, height, steps):
         pass
 
 def draw_grayscales (pdf):
-    SCALE_X = X0 + 3 * ANCHOR_SIZE + GAP
-    for y, n in [(Y0, 2), (Y1-BAR_HEIGHT, 4)]:
-        x = SCALE_X 
-        for _ in range(n):
-            draw_grayscale(pdf, x, y, SCALE_W, BAR_HEIGHT, 32)
-            x += SCALE_W + ANCHOR_SIZE
-            pass
+    for x, y, w, h in SCALE_BOXES:
+        draw_grayscale(pdf, x, y, w, h, 32)
+        pass
 
 def render_page (pdf, batch_page):
     print(W, H, X0, Y0, X1, Y1)
@@ -163,21 +170,23 @@ def enhance_color (image, colormap=None):
     H = hsv[:,:,0]
     S = hsv[:,:,1]
     V = hsv[:,:,2]
-    H[S < 0.1] = 0
-    S[S < 0.1] = 0
+    H[H < HUE_TH] = 0
+    H[S < SAT_TH] = 0
+    S[S < SAT_TH] = 0
     V[:,:] = 255
     if not colormap is None:
         gen_colormap(colormap, H, S)
 
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
-def get_HSV (image, colormap=None):
+def get_hue (image, colormap=None):
     inf = np.clip((image.astype(np.float32) + 20), 0, 255)
     hsv = cv2.cvtColor(inf, cv2.COLOR_BGR2HSV)
     H = hsv[:,:,0]
     S = hsv[:,:,1]
     V = hsv[:,:,2]
-    H[S < 0.1] = 0
+    H[H < HUE_TH] = 0
+    H[S < SAT_TH] = 0
     return H
 
 
@@ -190,11 +199,10 @@ def detect_circles (image, off):
 
     centers = []
     x0, y0 = off
-    print("XXX", image.shape)
     for box in measure.regionprops(labels):
         if box.area < 2000:
             continue
-        print("\t", box.area, box.centroid)
+        #print("\t", box.area, box.centroid)
         y, x = box.centroid
         centers.append([x0+x, y0+y])
     return centers
@@ -210,7 +218,6 @@ def detect_anchors (image):
     anchors = []
     for i, (x, y) in enumerate(blocks):
         aoi = image[y:(y+h), x:(x+w)]
-        print("XXX");
         anchors.append(detect_circles(aoi, (x, y)))
         pass
     return anchors
@@ -241,8 +248,8 @@ def calibrate (image):
     reg_y = LinearRegression()
     reg_x.fit(X, y1)
     reg_y.fit(X, y2)
-    print(reg_x.coef_, reg_x.intercept_)
-    print(reg_y.coef_, reg_y.intercept_)
+    #print(reg_x.coef_, reg_x.intercept_)
+    #print(reg_y.coef_, reg_y.intercept_)
     affine = np.zeros((2,3), dtype=np.float32)
     affine[0, :2] = reg_x.coef_
     affine[0, 2] = reg_x.intercept_
