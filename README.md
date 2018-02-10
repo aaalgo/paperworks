@@ -95,6 +95,9 @@ flow/color.py
 ```
 ## Layout and Registration
 
+Image registration and normalization is done by detecting the
+circle centers, and fitting an affine transformatoin with the locations.
+
 ```
 layout/__init__.py
 flow/paper.py
