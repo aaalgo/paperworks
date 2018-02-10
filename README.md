@@ -93,4 +93,10 @@ flow/pack.py
 ```
 flow/color.py
 ```
+## Layout and Registration
 
+```
+layout/__init__.py
+flow/paper.py
+flow/register.py
+```
