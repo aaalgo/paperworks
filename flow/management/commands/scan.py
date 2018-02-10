@@ -6,6 +6,7 @@ from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
 from glob import glob
 import subprocess
+from skimage import morphology
 import imageio
 from flow.models import *
 from flow.geometry import *
@@ -40,8 +41,8 @@ def gen_gif (path, image, mask):
     bgrm[:, :, 1] += mask * 255
     bgrm = np.clip(bgrm, 0, 255).astype(np.uint8)
     images.append(bgrm)
-    imageio.mimsave(path, images, duration = 0.5)
-    #subprocess.check_call('gifsicle -O3 < %s.gif > %s; rm %s.gif' % (path, path, path), shell=True)
+    imageio.mimsave(path + '.gif', images, duration = 0.5)
+    subprocess.check_call('gifsicle -O3 < %s.gif > %s; rm %s.gif' % (path, path, path), shell=True)
     pass
 
 def map_to_image (L, X0, X1, x0, x1):
@@ -131,8 +132,12 @@ def process (path):
         
     ############################################################
 
+    kernel = np.ones((1,1), dtype=np.uint8)
     for cid, cc in enumerate(classes):
         binary = (np.abs(hue - cc) < 50)
+        binary = morphology.remove_small_objects(binary, 32)
+        
+
         cv2.imwrite('aligned/%d-%d.png' % (scan.id, cid), binary.astype(np.uint8)*255)
         # get masks
         # move masks to image
