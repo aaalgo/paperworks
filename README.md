@@ -4,19 +4,21 @@ Paperworks - Image Annotation with Paper and Markers
 # Introduction
 
 ## Import images and generate PDF.
-[PDF](doc/pdf.jpg)	
+The software tries to pack multiple images into single pages
+whenever possible.
+![PDF](doc/pdf.jpg)	
 
 ## Annotate with markers.
-[marker](doc/marker.jpg)
+![marker](doc/marker.jpg)
 
 ## Scan.
-[scan](doc/scan.jpg)
+![scan](doc/scan.jpg)
 
 ## Registration.
-[transform](doc/color.jpg)
+![transform](doc/color.jpg)
 
 ## Masks.
-[mask](doc/mask.gif)
+![mask](doc/mask.gif)
 
 # Prerequisites
 ```
