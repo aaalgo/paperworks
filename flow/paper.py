@@ -23,15 +23,16 @@ class Paper:
         for x, y in self.layout.anchors:
             pdf.setFillColorRGB(0,0,0)
             pdf.circle(x, y, self.layout.anchor_size/2, 1, 1)
-            pdf.setFillColorRGB(255,255,255)
+            pdf.setFillColorRGB(1,1,1)
             pdf.circle(x, y, self.layout.anchor_size/3, 1, 1)
 
         # sample boxes
         steps = 32
+        min_color = MIN_COLOR/255.0
         for x, y, w, h in self.layout.samples:
             step = w / steps
             for i in range(steps):
-                C = (1.0 - MIN_COLOR) * i/steps + MIN_COLOR
+                C = (1.0 - min_color) * i/steps + min_color
                 pdf.setStrokeColorRGB(C,C,C)
                 pdf.setFillColorRGB(C,C,C)
                 pdf.rect(x + i * step, y, step, h, fill=1)

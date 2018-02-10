@@ -43,7 +43,6 @@ def gen_gif (path, image, mask):
     bgr = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     images.append(bgr)
     bgrm = np.copy(bgr).astype(np.float32)
-    print("YYY", np.sum(mask), np.max(mask))
     bgrm[:, :, 1] += mask * 255
     bgrm = np.clip(bgrm, 0, 255).astype(np.uint8)
     images.append(bgrm)
@@ -60,13 +59,13 @@ def map_to_mask (L, X0, W, x0, w):
     return x0, x1
 
 def paste_to_mask (mask, binary, image_box, aoi):
-    print(image_box, '=>', aoi)
+    #print(image_box, '=>', aoi)
     height, width = mask.shape
     X0,Y0,W,H = image_box
     x0,y0,w,h = aoi
     assert w > 0 and h > 0
 
-    print(aoi, 'in', image_box)
+    #print(aoi, 'in', image_box)
     aoi = binary[y0:(y0+h), x0:(x0+w)]
 
     x0, x1 = map_to_mask(width, X0, W, x0, w)
@@ -125,8 +124,6 @@ def process (path):
     image_boxes = [round_box(box) for box in boxes2paper(image_boxes)]
 
     for cid, binary in enumerate(pc.predict(image)):
-        print("XXX", binary.shape)
-
         binary = binary.astype(np.uint8)
         cv2.imwrite('aligned/%d-%d.png' % (scan.id, cid), binary * 255)
         # get masks

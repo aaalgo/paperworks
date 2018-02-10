@@ -28,7 +28,7 @@ class Image (models.Model):
         mean = np.mean(image)
         if mean < 128:
             image = 255 - image
-        image = cv2.normalize(image, None, MIN_COLOR * 255, 255, cv2.NORM_MINMAX)
+        image = cv2.normalize(image, None, MIN_COLOR, 255, cv2.NORM_MINMAX)
         image = cv2.flip(image, 0)
         cv2.imwrite(self.embed_path(False), image)
         cv2.imwrite(self.embed_path(True), cv2.transpose(image))

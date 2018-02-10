@@ -28,8 +28,8 @@ def hsv (image):
     S = hsv[:,:,1]
     V = hsv[:,:,2]
     H[H < HUE_TH] = 0
-    H[S < SAT_TH] = 0
-    S[S < SAT_TH] = 0
+    H[S < SATURATE_TH] = 0
+    S[S < SATURATE_TH] = 0
     V[:,:] = 255
     return hsv
 
@@ -52,14 +52,17 @@ class PixelClassifier:
             h = hue(sample)
             # count number of pixels
             nc = np.sum(h > 0)
+            if nc <= 0:
+                continue
             cc = np.sum(h) / nc
             h[np.abs(h - cc) > CLASS_GAP] = 0
             nc = np.sum(h > 0)
+            if nc < SAMPLE_TH:
+                continue
             cc = np.sum(h) / nc
-            if nc > LEGEND_TH:
-                print("COLOR DETECTED:", cc, nc)
-                classes.append(cc)
-                pass
+            print("COLOR DETECTED:", cc, nc)
+            classes.append(cc)
+            pass
         classes.sort()
         for i in range(1, len(classes)):
             assert classes[i] - classes[i-1] > 2 * (CLASS_GAP + CLASS_RELAX)
