@@ -29,12 +29,11 @@ def divide (w0, h0, W, H):
         pass
     return best, best_rotate, best_along_x
 
-def pack (layout, images):     # item: (id, w, h)
+def pack (size, images):     # item: (id, w, h)
     # return pages
     #        page: [items]
     #        item: id, x, y, rotated
-    x0, y0, x1, y1 = layout.imagebb
-    width, height = x1 - x0, y1 - y0
+    width, height = size
     pages = []
     bins = []   # [page, x, y, w, h]
     # reverse sort by size

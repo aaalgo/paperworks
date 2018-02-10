@@ -4,7 +4,7 @@ from reportlab.lib.units import inch
 
 class LetterSizeLandscapeLayout:
     # all orders are x, y, or width, height
-    # all boxes are x0, x1, y0, y1
+    # all boxes are x, y, width, height
     def __init__ (self):
         width, height = landscape(letter)
         margin = 0.25 * inch # margin
@@ -19,7 +19,7 @@ class LetterSizeLandscapeLayout:
         self.paper_size = width, height
         self.margin = margin
         self.box_height = 0.4 * inch    # sample box or barcode
-        self.box_width = 1.5 * inch
+        self.box_width = 1.4 * inch
         # barcode single bar width
         self.bar_width = 0.02 * inch
         self.anchor_size = 0.4 * inch
@@ -30,13 +30,13 @@ class LetterSizeLandscapeLayout:
         x1 = width - margin
         y1 = height - margin
 
-        self.contentbb = x0, y0, x1, y1
-        self.imagebb = x0, y0 + self.box_height + qspace, x1, y1 - self.box_height - qspace
+        self.contentbb = x0, y0, x1 - x0, y1 - y0
+        self.imagebb = x0, y0 + self.box_height + qspace, x1 - x0, y1 - y0 - (self.box_height + qspace) * 2
         self.anchors = []
         self.samples = []
 
         # generate anchors
-        r = space
+        r = self.anchor_size / 2
         for X, Y, dx, dy, dir,n in [(x0+r, y0+r, 1, 1, 0, 3),
                                   (x1-r, y0+r, -1, 1, 0, 4),
                                   (x0+r, y1-r, 1, -1, 0, 3),
@@ -54,7 +54,7 @@ class LetterSizeLandscapeLayout:
         for y, n in [(y0, 2), (y1-self.box_height, 4)]:
             x = sample_x
             for _ in range(n):
-                self.samples.append([x, y, x + self.box_width, y + self.box_height])
+                self.samples.append([x, y, self.box_width, self.box_height])
                 x += self.box_width + space
                 pass
             pass

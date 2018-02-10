@@ -10,9 +10,8 @@ import numpy as np
 import cv2
 
 class Paper:
-    def __init__ (self, path, layout=LAYOUT):
-        self.path = 'jobs/%04d-%s.pdf' % (batch.id, timezone.localtime(batch.timestamp).strftime('%Y%m%d%H%M%S'))
-        self.canvas = canvas.Canvas(self.path, pagesize=layout.paper_size, bottomup=0)
+    def __init__ (self, path, layout):
+        self.canvas = canvas.Canvas(path, pagesize=layout.paper_size, bottomup=0)
         self.layout = layout
         pass
 
@@ -23,11 +22,11 @@ class Paper:
         pdf.setStrokeColorRGB(0,0,0)
         pdf.setFillColorRGB(0,0,0)
         for x, y in self.layout.anchors:
-            pdf.circle(x, y, GAP, 1, 1)
+            pdf.circle(x, y, self.layout.anchor_size/2, 1, 1)
 
         # sample boxes
         steps = 32
-        for x, y, w, h in self.samples:
+        for x, y, w, h in self.layout.samples:
             step = w / steps
             for i in range(steps):
                 C = (1.0 - MIN_COLOR) * i/steps + MIN_COLOR
@@ -50,10 +49,13 @@ class Paper:
         barcode.drawOn(pdf, self.layout.barcode_x, self.layout.barcode_y)
 
         for image in images:
-            ratio = 1.0 / PPI * inch
             pdf.drawImage(image.embed_path(image.rotate), image.page_x, image.page_y, width=image.page_w, height=image.page_h)
             pass
         pdf.showPage()
+        pass
+    
+    def save (self):
+        self.canvas.save()
     pass
 
 

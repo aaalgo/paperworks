@@ -4,8 +4,10 @@ import simplejson as json
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
 from django.db import IntegrityError, transaction
-from flow.geometry import create_pdf, render_page
+from django.utils import timezone
+#from flow.geometry import create_pdf, render_page
 from flow.models import *
+from flow.paper import Paper
 from params import *
 
 def gen_batches ():
@@ -26,11 +28,12 @@ class Command(BaseCommand):
                 continue
             batch = Batch.objects.create()
 
-            pdf = create_pdf(batch)
+            path = 'jobs/%04d-%s.pdf' % (batch.id, timezone.localtime(batch.timestamp).strftime('%Y%m%d%H%M%S'))
+
+            pdf = Paper(path, LAYOUT)
             for page in pages:
                 batch_page = BatchPage.objects.create(batch=batch, page=page)
-                render_page(pdf, batch_page)
-                pdf.showPage()
+                pdf.render_page(batch_page, Image.objects.filter(page=page))
                 pass
             pdf.save()
             pass

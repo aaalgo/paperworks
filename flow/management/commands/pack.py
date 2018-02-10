@@ -24,7 +24,7 @@ class Command(BaseCommand):
             Page.objects.all().delete()
 
         images = list(Image.objects.all())
-        x0, y0, x1, y1 = LAYOUT.imagebb
+        x0, y0, width, height = LAYOUT.imagebb
         # do packing
         items = []
 
@@ -34,10 +34,9 @@ class Command(BaseCommand):
             h = image.height / IMAGE_PPI * inch
             image.page_w = w
             image.page_h = h
-            print(w, h, margin, x1-x0, y1-y0)
             items.append((i, w + margin * 2, h + margin * 2))
             pass
-        pages = pack(LAYOUT, items)
+        pages = pack((width, height), items)
 
         C = 0
         for items in pages:
@@ -53,8 +52,8 @@ class Command(BaseCommand):
                 else:
                     right = image.page_x + image.page_w
                     bottom = image.page_y + image.page_h
-                assert right < x1 + LAYOUT.space
-                assert bottom < y1  + LAYOUT.space
+                assert right < x0 + width + LAYOUT.space
+                assert bottom < y0 + height  + LAYOUT.space
                 pass
             C += len(items)
             pass

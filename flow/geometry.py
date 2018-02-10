@@ -1,7 +1,6 @@
 from reportlab.pdfgen import canvas
 from reportlab.graphics.barcode import code39
 from reportlab.lib.pagesizes import letter, A4, landscape
-from django.utils import timezone
 from sklearn.linear_model import LinearRegression
 from skimage import measure
 from flow.models import *
