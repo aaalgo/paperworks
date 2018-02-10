@@ -43,7 +43,7 @@ def gen_gif (path, image, mask):
     bgr = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     images.append(bgr)
     bgrm = np.copy(bgr).astype(np.float32)
-    bgrm[:, :, 1] += mask * 255
+    bgrm[:, :, 1] += np.clip(mask, 0, 1) * 255
     bgrm = np.clip(bgrm, 0, 255).astype(np.uint8)
     images.append(bgrm)
     imageio.mimsave(path + '.gif', images, duration = 0.5)
@@ -58,7 +58,7 @@ def map_to_mask (L, X0, W, x0, w):
     x1 = int(round(1.0 * (x1 - X0) * L / W))
     return x0, x1
 
-def paste_to_mask (mask, binary, image_box, aoi):
+def paste_to_mask (mask, binary, image_box, aoi, cid):
     #print(image_box, '=>', aoi)
     height, width = mask.shape
     X0,Y0,W,H = image_box
@@ -76,7 +76,7 @@ def paste_to_mask (mask, binary, image_box, aoi):
     aoi = cv2.resize(aoi, (x1-x0, y1-y0))
 
     mask_aoi = mask[y0:y1, x0:x1]
-    mask_aoi[aoi > 0] = 1
+    mask_aoi[aoi > 0] = cid
     #cv2.rectangle(mask, (x0, y0), (x1, y1), 1, 1)
     pass
 
@@ -151,7 +151,7 @@ def process (path):
                 pass
             if best is None:
                 continue
-            paste_to_mask(image_mask[best], binary, image_boxes[best], best_aoi)
+            paste_to_mask(image_mask[best], binary, image_boxes[best], best_aoi, cid+1)
             pass
         pass
     for i, image  in enumerate(images):
@@ -159,6 +159,7 @@ def process (path):
         mask = image_mask[i]
         if image.rotate:
             mask = cv2.transpose(mask)
+        cv2.imwrite(image.path + '.png', mask)
         gen_gif('aligned/vis-%d.gif' % images[i].id, bg, mask)
     pass
 
