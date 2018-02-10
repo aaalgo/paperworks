@@ -111,6 +111,6 @@ flow/register.py
 
 # My Other Projects
 
-## [PicPac](https://github.com/aaalgo/picpac-demos) A image database for
+- [PicPac](https://github.com/aaalgo/picpac-demos) A image database for
 deep-learning.
 
