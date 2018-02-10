@@ -19,7 +19,7 @@ class LetterSizeLandscapeLayout:
         self.paper_size = width, height
         self.margin = margin
         self.box_height = 0.4 * inch    # sample box or barcode
-        self.box_width = 1.4 * inch
+        self.box_width = 1.5 * inch
         # barcode single bar width
         self.bar_width = 0.02 * inch
         self.anchor_size = 0.4 * inch
@@ -37,10 +37,10 @@ class LetterSizeLandscapeLayout:
 
         # generate anchors
         r = self.anchor_size / 2
-        for X, Y, dx, dy, dir,n in [(x0+r, y0+r, 1, 1, 0, 3),
+        for X, Y, dx, dy, dir,n in [(x0+r, y0+r, 1, 1, 0, 4),
                                   (x1-r, y0+r, -1, 1, 0, 4),
-                                  (x0+r, y1-r, 1, -1, 0, 3),
-                                  (x1-r, y1-r, -1, -1, 0, 3)]:
+                                  (x0+r, y1-r, 1, -1, 0, 4),
+                                  (x1-r, y1-r, -1, -1, 0, 5)]:
             for s in range(n):
                 x = X + dx * s * (1-dir) * (self.anchor_size + qspace)
                 y = Y + dy * s * dir * (self.anchor_size + qspace)
@@ -48,14 +48,14 @@ class LetterSizeLandscapeLayout:
                 pass
             pass
 
-        sample_x = x0 + 3 * self.anchor_size + space
+        sample_x = x0 + 4 * (self.anchor_size + qspace) + hspace
         self.barcode_x = sample_x + 2 * (self.box_width + hspace) + hspace
         self.barcode_y = y0
-        for y, n in [(y0, 2), (y1-self.box_height, 4)]:
+        for y, n in [(y0, 2), (y1-self.box_height, 3)]:
             x = sample_x
             for _ in range(n):
                 self.samples.append([x, y, self.box_width, self.box_height])
-                x += self.box_width + space
+                x += self.box_width + hspace
                 pass
             pass
         pass

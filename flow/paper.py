@@ -20,9 +20,11 @@ class Paper:
 
         # anchors
         pdf.setStrokeColorRGB(0,0,0)
-        pdf.setFillColorRGB(0,0,0)
         for x, y in self.layout.anchors:
+            pdf.setFillColorRGB(0,0,0)
             pdf.circle(x, y, self.layout.anchor_size/2, 1, 1)
+            pdf.setFillColorRGB(255,255,255)
+            pdf.circle(x, y, self.layout.anchor_size/3, 1, 1)
 
         # sample boxes
         steps = 32
