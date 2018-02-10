@@ -23,6 +23,13 @@ whenever possible.
 ## Annotate with markers.
 ![marker](doc/marker.jpg)
 
+There are several sample boxes to collect colors used.
+Each color used must appear in one sample box (see below).
+
+Use red and blue, red, blue and green.
+
+(Circles are for image registration.)
+
 ## Scan.
 ![scan](doc/scan.jpg)
 
