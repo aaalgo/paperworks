@@ -135,7 +135,7 @@ def process (path):
     kernel = np.ones((1,1), dtype=np.uint8)
     for cid, cc in enumerate(classes):
         binary = (np.abs(hue - cc) < 50)
-        binary = morphology.remove_small_objects(binary, 32)
+        binary = morphology.remove_small_objects(binary, 5)
         
 
         cv2.imwrite('aligned/%d-%d.png' % (scan.id, cid), binary.astype(np.uint8)*255)
