@@ -33,14 +33,14 @@ def pack (layout, images):     # item: (id, w, h)
     # return pages
     #        page: [items]
     #        item: id, x, y, rotated
-    x0, x1, y0, y1 = layout.imagebb
-    PAGE_W, PAGE_H = x1 - x0, y1 - y0
+    x0, y0, x1, y1 = layout.imagebb
+    width, height = x1 - x0, y1 - y0
     pages = []
     bins = []   # [page, x, y, w, h]
     # reverse sort by size
     for uid, w, h in sorted(images, key=lambda im: -im[1] * im[2]):
-        assert w <= PAGE_W
-        assert h <= PAGE_H
+        assert w <= width
+        assert h <= height
         # try to find a bin that fits image
         best = None
         best_score = None
@@ -58,9 +58,9 @@ def pack (layout, images):     # item: (id, w, h)
             pass
         if best is None:
             best = len(bins)
-            bins.append([len(pages), 0, 0, PAGE_W, PAGE_H])
+            bins.append([len(pages), 0, 0, width, height])
             pages.append([])
-            best_score, best_rotate, best_along_x = divide(w, h, PAGE_W, PAGE_H)
+            best_score, best_rotate, best_along_x = divide(w, h, width, height)
             pass
         # split
         page, x, y, W, H = bins[best]

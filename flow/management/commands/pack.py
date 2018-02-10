@@ -27,18 +27,19 @@ class Command(BaseCommand):
         x0, y0, x1, y1 = LAYOUT.imagebb
         # do packing
         items = []
-        
+
         margin = LAYOUT.image_margin    # image margin
         for i, image in enumerate(images):
-            pages.append([image])
             w = image.width / IMAGE_PPI * inch
             h = image.height / IMAGE_PPI * inch
             image.page_w = w
             image.page_h = h
+            print(w, h, margin, x1-x0, y1-y0)
             items.append((i, w + margin * 2, h + margin * 2))
             pass
         pages = pack(LAYOUT, items)
 
+        C = 0
         for items in pages:
             for uid, x, y, rotate in items:
                 image = images[uid]
@@ -55,7 +56,6 @@ class Command(BaseCommand):
                 assert right < x1 + LAYOUT.space
                 assert bottom < y1  + LAYOUT.space
                 pass
-            P += 1
             C += len(items)
             pass
         assert C == len(images)
