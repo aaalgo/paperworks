@@ -3,15 +3,20 @@ Paperworks - Image Annotation with Paper and Markers
 
 # Introduction
 
-## [PDF](doc/pdf.jpg)	
+## Import images and generate PDF.
+[PDF](doc/pdf.jpg)	
 
-## [marker](doc/marker.jpg)
+## Annotate with markers.
+[marker](doc/marker.jpg)
 
-## [scan](doc/scan.jpg)
+## Scan.
+[scan](doc/scan.jpg)
 
-## [transform](doc/color.jpg)
+## Registration.
+[transform](doc/color.jpg)
 
-## [mask](doc/mask.gif)
+## Masks.
+[mask](doc/mask.gif)
 
 # Prerequisites
 ```
