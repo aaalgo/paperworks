@@ -52,6 +52,7 @@ pip install reportlab scikit-learn scikit-image django imageio opencv-python
 
 - Use red and blue, or red, blue and green.
 
+- Images have to be properly scaled before importing.
 
 # Technical Details
 
