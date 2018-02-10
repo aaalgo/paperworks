@@ -23,8 +23,11 @@ whenever possible.  Each PDF file has at most 20 pages.
 ## 2. Annotate with markers.
 ![marker](doc/marker.jpg)
 
+Crayola markers work better than crayons!
+
 There are several sample boxes to collect colors used.
-Each color used must appear in one sample box (see below).
+Each color used must appear in one sample box (see below); it doesn't
+matter which boxes you use.
 
 Use red and blue, red, blue and green.  Multiple colors are necessary to
 separate touching objects.
