@@ -64,6 +64,7 @@ class PixelClassifier:
             classes.append(cc)
             pass
         classes.sort()
+        print('COLORS:', classes)
         for i in range(1, len(classes)):
             assert classes[i] - classes[i-1] > 2 * (CLASS_GAP + CLASS_RELAX)
         self.classes = classes

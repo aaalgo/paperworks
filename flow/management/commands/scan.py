@@ -1,9 +1,9 @@
 import os
 import sys
+import traceback
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
-from django.db import IntegrityError, transaction
-from django.contrib.auth.models import User
+from django.db import transaction
 from glob import glob
 import subprocess
 import imageio
@@ -80,11 +80,15 @@ def paste_to_mask (mask, binary, image_box, aoi, cid):
     #cv2.rectangle(mask, (x0, y0), (x1, y1), 1, 1)
     pass
 
+@transaction.atomic
 def process (path):
+    print("processing", path)
     ############################################################
     batch_id, page_id = barcode_scan(path)
     batch = Batch.objects.get(pk=batch_id)
     page = Page.objects.get(pk=page_id)
+    page.done = True
+    page.save()
     scan = Scan.objects.create(path=path, batch=batch, page=page)
     ############################################################
 
@@ -158,7 +162,9 @@ def process (path):
         bg = image_bg[i]
         mask = image_mask[i]
         if image.rotate:
+            mask = cv2.flip(mask, 0)
             mask = cv2.transpose(mask)
+            mask = cv2.flip(mask, 0)
         cv2.imwrite(image.path + '.png', mask)
         gen_gif('aligned/vis-%d.gif' % images[i].id, bg, mask)
     pass
@@ -169,7 +175,6 @@ class Command(BaseCommand):
         #parser.add_argument('--run', action='store_true', default=False, help='')
         pass
 
-    @transaction.atomic
     def handle(self, *args, **options):
         Scan.objects.all().delete()
         subprocess.check_call('rm -f aligned/*', shell=True)
@@ -177,7 +182,12 @@ class Command(BaseCommand):
             for f in files:
                 path = os.path.join(root, f)
                 if Scan.objects.filter(path=path).count() == 0:
-                    process(path)
+                    try:
+                        process(path)
+                    except:
+                        traceback.print_exc()
+                        print("Failed to process file %s" % path)
+                        pass
                 pass
             pass
         pass
