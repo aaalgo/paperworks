@@ -37,6 +37,10 @@ Recommended configuration is 24-bit color with resolution = 200.
 Put scanned images into `paperworks/scan/*.tiff`.
 
 ## Registration.
+Scanned images are registered and transformed to match PDF documents.
+The grayscale channel is then removed by transforming image into
+HSV colorspace and applying some thresholding.
+
 ![transform](doc/color.jpg)
 
 ```
