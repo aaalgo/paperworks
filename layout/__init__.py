@@ -41,11 +41,15 @@ class LetterSizeLandscapeLayout:
                                   (x1-r, y0+r, -1, 1, 0, 4),
                                   (x0+r, y1-r, 1, -1, 0, 4),
                                   (x1-r, y1-r, -1, -1, 0, 5)]:
+            anchors = []
             for s in range(n):
                 x = X + dx * s * (1-dir) * (self.anchor_size + qspace)
                 y = Y + dy * s * dir * (self.anchor_size + qspace)
-                self.anchors.append([x, y])
+                anchors.append([x, y])
                 pass
+            # sort by x
+            anchors.sort(key=lambda a:a[0])
+            self.anchors.extend(anchors)
             pass
 
         sample_x = x0 + 4 * (self.anchor_size + qspace) + hspace

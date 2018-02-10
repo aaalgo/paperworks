@@ -8,29 +8,35 @@ from glob import glob
 import subprocess
 import imageio
 from flow.models import *
-from flow.geometry import *
+from flow.register import *
+from flow.barcode import *
 from flow.color import PixelClassifier, filter_color
 
-def zbar_scan (path):
-    symbol = subprocess.check_output("./zbar.py %s" % path, shell=True)
-    symbol = symbol.decode('ascii').strip()
-    assert len(symbol) > 0
-    return symbol
+def overlap (box1, box2):
+    x0, y0, w, h = box1
+    x1, y1 = x0 + w, y0 + h
 
-def estimate_transform (image):
-    pass
+    X0, Y0, W, H = box2
+    X1, Y1 = X0 + W, Y0 + H
 
-def normalize (image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    rotate = rotate_normalize(gray)
-    image = rotate(image)
-    affine = calibrate(rotate(gray))
+    ox0 = max(x0, X0)
+    oy0 = max(y0, Y0)
+    ox1 = min(x1, X1)
+    oy1 = min(y1, Y1)
 
-    W, H = PAPER_SIZE
-    W = int(round(W * CALIB_PPI / inch))
-    H = int(round(H * CALIB_PPI / inch))
+    return [ox0, oy0, ox1-ox0, oy1-oy0]
 
-    return cv2.warpAffine(image, affine, (W, H))
+def round_box (box):
+    x, y, w, h = box
+    x1 = x + w + 0.5
+    y1 = y + h + 0.5
+    x = int(round(x))
+    y = int(round(y))
+    x1 = int(round(x1))
+    y1 = int(round(y1))
+    return x, y, x1-x, y1-y
+
+
 
 def gen_gif (path, image, mask):
     images = []
@@ -45,59 +51,59 @@ def gen_gif (path, image, mask):
     subprocess.check_call('gifsicle --colors 256 -O3 < %s.gif > %s; rm %s.gif' % (path, path, path), shell=True)
     pass
 
-def map_to_image (L, X0, X1, x0, x1):
-    # L is image size
-    # X0:X1 image in page
-    # x0:x1 roi in page
-    
-    x0 = int(round(1.0 *(x0 - X0) * L / (X1 - X0)))
-    x1 = int(round(1.0 * (x1 - X0) * L / (X1 - X0)))
+def map_to_mask (L, X0, W, x0, w):
+    # X0, W image in page
+    # x0, w roi in page
+    x1 = x0 + w
+    x0 = int(round(1.0 * (x0 - X0) * L / W))
+    x1 = int(round(1.0 * (x1 - X0) * L / W))
     return x0, x1
 
 def paste_to_mask (mask, binary, image_box, aoi):
     print(image_box, '=>', aoi)
-    H, W = mask.shape
-    Y0,X0,Y1,X1 = [int(round(v)) for v in image_box]
-    y0,x0,y1,x1 = [int(round(v)) for v in aoi]
-    aoi = binary[y0:y1, x0:x1]
+    height, width = mask.shape
+    X0,Y0,W,H = image_box
+    x0,y0,w,h = aoi
+    assert w > 0 and h > 0
 
-    x0, x1 = map_to_image(W, X0, X1, x0, x1)
-    y0, y1 = map_to_image(H, Y0, Y1, y0, y1)
-    print(W, H, x0,x1,y0,y1)
+    print(aoi, 'in', image_box)
+    aoi = binary[y0:(y0+h), x0:(x0+w)]
+
+    x0, x1 = map_to_mask(width, X0, W, x0, w)
+    y0, y1 = map_to_mask(height, Y0, H, y0, h)
+    if x0 >= x1 or y0 >= y1:
+        return
+    y0, x0, y1, x1 = expand((y0, x0, y1, x1), mask.shape, 0)
     aoi = cv2.resize(aoi, (x1-x0, y1-y0))
 
     mask_aoi = mask[y0:y1, x0:x1]
     mask_aoi[aoi > 0] = 1
+    #cv2.rectangle(mask, (x0, y0), (x1, y1), 1, 1)
     pass
 
 def process (path):
     ############################################################
-    symbol = zbar_scan(path)
-    if symbol is None:
-        print("ERROR, %s not recognized")
-        return
-    batch_id, page_id = barcode_decode(symbol)
+    batch_id, page_id = barcode_scan(path)
     batch = Batch.objects.get(pk=batch_id)
     page = Page.objects.get(pk=page_id)
     scan = Scan.objects.create(path=path, batch=batch, page=page)
     ############################################################
 
-    image = cv2.imread(path, cv2.IMREAD_COLOR).astype(np.float32)
-    image = normalize(image)
+    image = cv2.imread(path, cv2.IMREAD_COLOR) #.astype(np.float32)
+    image = cv2.GaussianBlur(image, (9, 9), 3)
+    image = normalize(image, LAYOUT)
 
-    cv2.imwrite('aligned/%d.png' % scan.id, image)
     cv2.imwrite('aligned/%d-color.png' % scan.id, filter_color(image))
-    #sys.exit(0)
 
     pc = PixelClassifier()
 
     samples = []
-    for x, y, w, h in SCALE_BOXES:
-        x = int(round(x * CALIB_PPI / inch))
-        y = int(round(y * CALIB_PPI / inch))
-        w = int(round(w * CALIB_PPI / inch))
-        h = int(round(h * CALIB_PPI / inch))
-        samples.append(image[y:(y+h), x:(x+w)])
+    for x, y, w, h in boxes2paper(LAYOUT.samples):
+        x = int(round(x))
+        y = int(round(y))
+        x1 = int(round(x+w))
+        y1 = int(round(y+h))
+        samples.append(image[y:y1, x:x1])
         pass
     pc.fit(samples)
 
@@ -105,22 +111,18 @@ def process (path):
     image_boxes = []
     image_bg = []
     image_mask = []
-    for imager in images:
-        x = imager.page_x * CALIB_PPI / inch
-        y = imager.page_y * CALIB_PPI / inch
-        w = imager.page_w * CALIB_PPI / inch
-        h = imager.page_h * CALIB_PPI / inch
-        image_boxes.append([y, x, (y+h), (x+w)])
+    for r in images:
+        image_boxes.append([r.page_x, r.page_y, r.page_w, r.page_h])
 
-        bg = cv2.imread(imager.path, cv2.IMREAD_COLOR)
+        bg = cv2.imread(r.path, cv2.IMREAD_COLOR)
         H, W = bg.shape[:2]
         mask = np.zeros((H, W), dtype=np.uint8)
-        if imager.rotate:
+        if r.rotate:
             mask = cv2.transpose(mask)
         image_bg.append(bg)
         image_mask.append(mask)
-        
-    ############################################################
+        pass
+    image_boxes = [round_box(box) for box in boxes2paper(image_boxes)]
 
     for cid, binary in enumerate(pc.predict(image)):
         print("XXX", binary.shape)
@@ -131,35 +133,28 @@ def process (path):
         # move masks to image
         labels = measure.label(binary, background=0)
         for box in measure.regionprops(labels):
-            y0, x0, y1, x1 = box.bbox
-            cc = np.sum(binary[y0:y1, x0:x1])
-            if cc < 20:
-                continue
             # check best images
             # find best image
             best = None
             best_area = -1
             best_aoi = None
-            for i, (Y0, X0, Y1, X1) in enumerate(image_boxes):
-                Y0 = max(y0, Y0)
-                X0 = max(x0, X0)
-                Y1 = min(y1, Y1)
-                X1 = min(x1, X1)
-                if Y0 < Y1 and X0 < X1:
-                    area = (Y1 - Y0) * (X1 - X0)
+            for i, ibox in enumerate(image_boxes):
+                y0, x0, y1, x1 = box.bbox
+                bbox = [x0, y0, x1-x0, y1-y0]
+                aoi = overlap(bbox, ibox)
+                _, _, w, h = aoi
+                area = w * h
+                if w > 0 and h > 0:
                     if area > best_area:
                         best_area = area
                         best = i
-                        best_aoi = [Y0, X0, Y1, X1]
+                        best_aoi = aoi
                         pass
                     pass
                 pass
             if best is None:
                 continue
-            #image = images[best]
-            mask = image_mask[best]
-            paste_to_mask(mask, binary, image_boxes[best], best_aoi)
-            # somehow save info
+            paste_to_mask(image_mask[best], binary, image_boxes[best], best_aoi)
             pass
         pass
     for i, image  in enumerate(images):
@@ -179,7 +174,7 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         Scan.objects.all().delete()
-        subprocess.check_call('rm aligned/*', shell=True)
+        subprocess.check_call('rm -f aligned/*', shell=True)
         for root, dirs, files in os.walk('scan', topdown=False):
             for f in files:
                 path = os.path.join(root, f)
