@@ -1,5 +1,6 @@
 from reportlab.pdfgen import canvas
 from reportlab.graphics.barcode import code39
+from reportlab.lib.pagesizes import letter, A4, landscape
 from django.utils import timezone
 from sklearn.linear_model import LinearRegression
 from skimage import measure
@@ -22,18 +23,19 @@ def create_pdf (batch):
     +     +
     ++ B ++
 '''
-W, H = PAPER_SIZE
-X0, Y0 = MARGIN
-X1, Y1 = W - X0, H - Y0
-GAP = ANCHOR_SIZE * 0.5
-RELAX = 0.3 * GAP
-
 def barcode_encode (batch_page):
     return '%d %d' % (batch_page.batch.id, batch_page.page.id)
 
 def barcode_decode (symbol):
     x, y = symbol.split(' ')
     return int(x), int(y[0])
+
+W, H = PAPER_SIZE
+X0, Y0 = MARGIN
+X1, Y1 = W - X0, H - Y0
+GAP = ANCHOR_SIZE * 0.5
+RELAX = 0.3 * GAP
+
 
 ANCHORS = []
 #ANCHOR_LINES = []
@@ -47,6 +49,11 @@ IMAGE_W = IMAGE_X1 - IMAGE_X0
 IMAGE_H = IMAGE_Y1 - IMAGE_Y0
 SCALE_X = X0 + 3 * (ANCHOR_SIZE + RELAX) + GAP
 BAR_X = SCALE_X + 2 * (SCALE_W + ANCHOR_SIZE) + ANCHOR_SIZE
+
+class LetterSizeLandscapeLayout:
+    WIDTH
+
+
 
 def gen_anchors ():
     for X, Y, dx, dy, dir,n in [(X0+GAP, Y0+GAP, 1, 1, 0, 3),
@@ -143,52 +150,7 @@ def create_scales_pdf (path):
         pass
     pdf.showPage()
     pdf.save()
-
     pass
-
-def gen_colormap (path, H, S):
-    L=500
-    vis = np.zeros((L,L,3), dtype=np.float32)
-    Y, X = H.shape
-    for i in range(Y):
-        h = H[i]
-        s = S[i]
-        for j in range(X):
-            vh = int(round(h[j] * (L-1)/360))
-            vs = int(round(s[j] * (L-1)))
-            vis[vh,vs,0] = h[j]
-            vis[vh,vs,1] = s[j]
-            pass
-        pass
-    vis[:,:,2] = 255.0
-    hsv = cv2.cvtColor(vis, cv2.COLOR_HSV2BGR)
-    cv2.imwrite(path, hsv)
-
-def enhance_color (image, colormap=None):
-    inf = np.clip((image.astype(np.float32) + 20), 0, 255)
-    hsv = cv2.cvtColor(inf, cv2.COLOR_BGR2HSV)
-    H = hsv[:,:,0]
-    S = hsv[:,:,1]
-    V = hsv[:,:,2]
-    H[H < HUE_TH] = 0
-    H[S < SAT_TH] = 0
-    S[S < SAT_TH] = 0
-    V[:,:] = 255
-    if not colormap is None:
-        gen_colormap(colormap, H, S)
-
-    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-
-def get_hue (image, colormap=None):
-    inf = np.clip((image.astype(np.float32) + 20), 0, 255)
-    hsv = cv2.cvtColor(inf, cv2.COLOR_BGR2HSV)
-    H = hsv[:,:,0]
-    S = hsv[:,:,1]
-    V = hsv[:,:,2]
-    H[H < HUE_TH] = 0
-    H[S < SAT_TH] = 0
-    return H
-
 
 
 def detect_circles (image, off):

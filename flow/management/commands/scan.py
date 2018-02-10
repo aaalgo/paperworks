@@ -6,10 +6,10 @@ from django.db import IntegrityError, transaction
 from django.contrib.auth.models import User
 from glob import glob
 import subprocess
-from skimage import morphology
 import imageio
 from flow.models import *
 from flow.geometry import *
+from flow.color import PixelClassifier, filter_color
 
 def zbar_scan (path):
     symbol = subprocess.check_output("./zbar.py %s" % path, shell=True)
@@ -42,7 +42,7 @@ def gen_gif (path, image, mask):
     bgrm = np.clip(bgrm, 0, 255).astype(np.uint8)
     images.append(bgrm)
     imageio.mimsave(path + '.gif', images, duration = 0.5)
-    subprocess.check_call('gifsicle -O3 < %s.gif > %s; rm %s.gif' % (path, path, path), shell=True)
+    subprocess.check_call('gifsicle --colors 256 -O3 < %s.gif > %s; rm %s.gif' % (path, path, path), shell=True)
     pass
 
 def map_to_image (L, X0, X1, x0, x1):
@@ -86,30 +86,20 @@ def process (path):
     image = normalize(image)
 
     cv2.imwrite('aligned/%d.png' % scan.id, image)
-    cv2.imwrite('aligned/%d-color.png' % scan.id, enhance_color(image))
+    cv2.imwrite('aligned/%d-color.png' % scan.id, filter_color(image))
     #sys.exit(0)
 
-    hue = get_hue(image)
-    classes = []
+    pc = PixelClassifier()
+
+    samples = []
     for x, y, w, h in SCALE_BOXES:
         x = int(round(x * CALIB_PPI / inch))
         y = int(round(y * CALIB_PPI / inch))
         w = int(round(w * CALIB_PPI / inch))
         h = int(round(h * CALIB_PPI / inch))
-        roi = hue[y:(y+h), x:(x+w)]
-        nc = np.sum(roi > 0)
-        cc = np.sum(roi) / nc
-        roi = np.copy(roi)
-        roi[np.abs(roi - cc) > 50] = 0
-        nc = np.sum(roi > 0)
-        cc = np.sum(roi) / nc
-        if nc > LEGEND_TH:
-            print("COLOR DETECTED:", cc, nc)
-            classes.append(cc)
-            pass
-    classes.sort()
-    for i in range(1, len(classes)):
-        assert classes[i] - classes[i-1] > 2 * CLASS_GAP
+        samples.append(image[y:(y+h), x:(x+w)])
+        pass
+    pc.fit(samples)
 
     images = Image.objects.filter(page=page)
     image_boxes = []
@@ -132,17 +122,14 @@ def process (path):
         
     ############################################################
 
-    kernel = np.ones((1,1), dtype=np.uint8)
-    for cid, cc in enumerate(classes):
-        binary = (np.abs(hue - cc) < 50)
-        binary = morphology.remove_small_objects(binary, 5)
-        
+    for cid, binary in enumerate(pc.predict(image)):
+        print("XXX", binary.shape)
 
-        cv2.imwrite('aligned/%d-%d.png' % (scan.id, cid), binary.astype(np.uint8)*255)
+        binary = binary.astype(np.uint8)
+        cv2.imwrite('aligned/%d-%d.png' % (scan.id, cid), binary * 255)
         # get masks
         # move masks to image
         labels = measure.label(binary, background=0)
-        binary = binary.astype(np.uint8)
         for box in measure.regionprops(labels):
             y0, x0, y1, x1 = box.bbox
             cc = np.sum(binary[y0:y1, x0:x1])
@@ -180,10 +167,7 @@ def process (path):
         mask = image_mask[i]
         if image.rotate:
             mask = cv2.transpose(mask)
-        mask = cv2.flip(mask, 0)
         gen_gif('aligned/vis-%d.gif' % images[i].id, bg, mask)
-
-
     pass
 
 
