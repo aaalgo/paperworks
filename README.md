@@ -3,7 +3,7 @@ Paperworks - Image Annotation with Paper and Markers
 
 # Workflow
 
-## 1. Import images and generate PDF.
+## 1. Import images and generate PDF tasks.
 ![PDF](doc/pdf.jpg)	
 
 Checkout source code
@@ -26,7 +26,8 @@ whenever possible.  Each PDF file has at most 20 pages.
 There are several sample boxes to collect colors used.
 Each color used must appear in one sample box (see below).
 
-Use red and blue, red, blue and green.
+Use red and blue, red, blue and green.  Multiple colors are necessary to
+separate touching objects.
 
 (Circles are for image registration.)
 
@@ -51,12 +52,15 @@ HSV colorspace and applying some thresholding.
 ```
 ./manage.py scan --run
 ```
-Some visualizations will be produced in `paperworks/aligned`, and for
-each input image there will be a `*.png` file.  The pixel values of the
-mask file are 1, 2, ..., each corresponding to a different color used.
+Some visualizations will be produced in `paperworks/aligned`.
 
 ## 5. Masks.
 ![mask](doc/mask.gif)
+
+For each input image a `*.png` file will be produced in the same
+location as the image.  The pixel values of the
+mask file are 1, 2, ..., each corresponding to a different color used,
+sorted by the H value of the color (R -> G -> B).
 
 ## 6. Fix Failed Pages
 
