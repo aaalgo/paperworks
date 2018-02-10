@@ -34,7 +34,8 @@ Use red and blue, red, blue and green.
 ![scan](doc/scan.jpg)
 
 Images must be scaned in portrait mode.  It's OK to feed images with
-mixed rotations.
+mixed rotations and in random orders.  Each page is tracked by its
+barcode.
 
 Recommended configuration is 24-bit color with resolution = 200.
 Put scanned images into `paperworks/scan/*.tiff`.
