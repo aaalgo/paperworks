@@ -179,7 +179,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         Scan.objects.all().delete()
         subprocess.check_call('mkdir -p aligned masks', shell=True)
-        subprocess.check_call('rm -f aligned/* masks/*', shell=True)
+        subprocess.check_call('rm -rf aligned/* masks/*', shell=True)
         for root, dirs, files in os.walk('scan', topdown=False):
             for f in files:
                 path = os.path.join(root, f)
