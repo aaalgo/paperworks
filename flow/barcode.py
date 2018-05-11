@@ -5,7 +5,7 @@ def barcode_encode (batch_page):
 
 def barcode_decode (symbol):
     x, y = symbol.split(' ')
-    return int(x), int(y[0])
+    return int(x), int(y)
 
 def barcode_scan (path):
     symbol = subprocess.check_output("zbarimg %s" % path, shell=True)

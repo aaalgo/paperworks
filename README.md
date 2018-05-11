@@ -112,6 +112,11 @@ flow/paper.py
 flow/register.py
 ```
 
+# Dependencies
+
+- `apt-get install zbar-tools`
+- `pip3 install scikit-image imageio django`
+
 # My Other Projects
 
 - [PicPac](https://github.com/aaalgo/picpac-demos) A image database for

@@ -25,9 +25,10 @@ class Image (models.Model):
 
     def gen_embed (self):
         image = cv2.imread(self.path, cv2.IMREAD_GRAYSCALE)
-        mean = np.mean(image)
-        if mean < 128:
-            image = 255 - image
+        if ALLOW_REVERSE_COLOR:
+            mean = np.mean(image)
+            if mean < 128:
+                image = 255 - image
         image = cv2.normalize(image, None, MIN_COLOR, 255, cv2.NORM_MINMAX)
         image = cv2.flip(image, 0)
         cv2.imwrite(self.embed_path(False), image)

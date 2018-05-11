@@ -1,3 +1,4 @@
+from params import *
 
 # test with or without rotate
 #      cut along x or y
@@ -7,19 +8,23 @@ def divide (w0, h0, W, H):
     best = 0
     best_rotate = None
     best_along_x = None
-    for rotate in [False, True]:
+
+    choices = [False]
+    if ALLOW_ROTATE:
+        choices = [False, True]
+    for rotate in choices:
         if rotate:
             w, h = h0, w0
         else:
             w, h = w0, h0
-        if w < W and h < H:
+        if w <= W and h <= H:
             # along X
             v = max(min(W-w, h), min(W, H-h))
             if v > best:
                 best = v
                 best_rotate = rotate
                 best_along_x = True
-            v = max(min(W-w, H), min(w, H-h))
+            v = max(min(W-w, H), min(W, H-h))
             if v > best:
                 best = v
                 best_rotate = rotate
