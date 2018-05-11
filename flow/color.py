@@ -27,19 +27,46 @@ def hsv (image):
     H = hsv[:,:,0]
     S = hsv[:,:,1]
     V = hsv[:,:,2]
-    H[H < HUE_TH] = 0
-    H[S < SATURATE_TH] = 0
+    #H[H < HUE_TH] = 0
+    #H[S < SATURATE_TH] = 0
     S[S < SATURATE_TH] = 0
     V[:,:] = 255
-    return hsv
+    return hsv #[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
 
-def hue (image):
-    return hsv(image)[:, :, 0]
+def split_hsv (hsv):
+    return hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
 
 def filter_color (image):
     #if not colormap is None:
     #    gen_colormap(colormap, H, S)
     return cv2.cvtColor(hsv(image), cv2.COLOR_HSV2BGR)
+
+def dist_mod360 (h, cc):    # center cc
+    return np.minimum(np.minimum(np.abs(h-cc), np.abs(h-360-cc)), np.abs(h+360-cc))
+
+def detect_color (h, invalid_mask):
+
+    h0 = np.copy(h)
+    h0[h0 > 180] -= 360
+
+    mh = np.ma.masked_array(h, mask=invalid_mask)
+    mh0 = np.ma.masked_array(h0, mask=invalid_mask)
+
+    if mh0.std() < mh.std():
+        print('RED DETECTED')
+        h = h0
+        mh = mh0
+
+    cc = mh.mean()
+
+    bad = dist_mod360(h, cc) > CLASS_GAP
+
+    invalid_mask = np.logical_or(bad, invalid_mask)
+
+    nc = np.sum(np.logical_not(invalid_mask))
+    cc = np.ma.masked_array(h, mask=invalid_mask).mean()
+
+    return cc, nc
 
 class PixelClassifier:
     def __init__ (self):
@@ -49,17 +76,13 @@ class PixelClassifier:
     def fit (self, samples):
         classes = []
         for sample in samples:
-            h = hue(sample)
+            h, s, _ = split_hsv(hsv(sample))
             # count number of pixels
-            nc = np.sum(h > 0)
-            if nc <= 0:
+
+            cc, nc = detect_color(h, s < SATURATE_TH)
+
+            if not (nc >= SAMPLE_TH):
                 continue
-            cc = np.sum(h) / nc
-            h[np.abs(h - cc) > CLASS_GAP] = 0
-            nc = np.sum(h > 0)
-            if nc < SAMPLE_TH:
-                continue
-            cc = np.sum(h) / nc
             print("COLOR DETECTED:", cc, nc)
             classes.append(cc)
             pass
@@ -72,9 +95,9 @@ class PixelClassifier:
 
     def predict (self, image):
         r = []
-        h = hue(image)
+        h, s, _ = split_hsv(hsv(image))
         for cc in self.classes:
-            binary = (np.abs(h - cc) < CLASS_GAP)
+            binary = np.logical_and(dist_mod360(h, cc) < CLASS_GAP, s >= SATURATE_TH)
             binary = morphology.remove_small_objects(binary, SMALL_OBJECT)
             r.append(binary)
             pass

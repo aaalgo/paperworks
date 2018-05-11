@@ -1,5 +1,6 @@
 from django.db import models
 import numpy as np
+import os
 import cv2
 from params import *
 
@@ -17,6 +18,9 @@ class Image (models.Model):
     page_w = models.FloatField(null=True)
     page_h = models.FloatField(null=True)
     rotate = models.BooleanField(default=False)
+
+    def stem (self):
+        return os.path.splitext(os.path.basename(self.path))[0]
 
     def embed_path (self, rotate):
         if rotate:
