@@ -191,7 +191,6 @@ def process (path):
 class Command(BaseCommand):
     def add_arguments(self, parser):
         #parser.add_argument('--run', action='store_true', default=False, help='')
-        parser.add_argument('--remove', action='store_true', default=False, help='')
         pass
 
     def handle(self, *args, **options):
