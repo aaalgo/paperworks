@@ -66,6 +66,9 @@ def detect_color (h, invalid_mask):
     nc = np.sum(np.logical_not(invalid_mask))
     cc = np.ma.masked_array(h, mask=invalid_mask).mean()
 
+    if cc < -30:
+        cc += 360
+
     return cc, nc
 
 class PixelClassifier:
