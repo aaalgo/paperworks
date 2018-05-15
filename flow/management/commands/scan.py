@@ -7,10 +7,17 @@ from django.db import transaction
 from glob import glob
 import subprocess
 import imageio
+import scipy
 from flow.models import *
 from flow.register import *
 from flow.barcode import *
 from flow.color import PixelClassifier, filter_color
+
+tableau20 = [(180, 119, 31), (232, 199, 174), (14, 127, 255), (120, 187, 255),
+			 (44, 160, 44), (138, 223, 152), (40, 39, 214), (150, 152, 255),
+			 (189, 103, 148), (213, 176, 197), (75, 86, 140), (148, 156, 196),
+			 (194, 119, 227), (210, 182, 247), (127, 127, 127), (199, 199, 199),
+			 (34, 189, 188), (141, 219, 219), (207, 190, 23), (229, 218, 158)]
 
 def overlap (box1, box2):
     x0, y0, w, h = box1
@@ -28,7 +35,7 @@ def overlap (box1, box2):
 
 def round_box (box):
     x, y, w, h = box
-    x1 = x + w + 0.5
+    x1 = x + w + 0.3
     y1 = y + h + 0.5
     x = int(round(x))
     y = int(round(y))
@@ -37,16 +44,24 @@ def round_box (box):
     return x, y, x1-x, y1-y
 
 
+def overlay_channel (v, mask, c):
+    for i in range(3):
+        v[:, :, i][mask] *= 0.5
+        v[:, :, i][mask] += c[i]*0.5
+    pass
 
 def gen_gif (path, image, mask):
     images = []
     bgr = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     images.append(bgr)
     bgrm = np.copy(bgr).astype(np.float32)
-    bgrm[:, :, 1] += np.clip(mask, 0, 1) * 255
-    bgrm = np.clip(bgrm, 0, 255).astype(np.uint8)
+    for v in np.unique(mask):
+        if v == 0:
+            continue
+        r, g, b= tableau20[v-1]
+        overlay_channel(bgrm, mask == v, (b, g, r))
     images.append(bgrm)
-    imageio.mimsave(path + '.gif', images, duration = 0.5)
+    imageio.mimsave(path + '.gif', images, duration = 1)
     subprocess.check_call('gifsicle --colors 256 -O3 < %s.gif > %s; rm %s.gif' % (path, path, path), shell=True)
     pass
 
@@ -155,7 +170,9 @@ def process (path):
                 pass
             if best is None:
                 continue
-            paste_to_mask(image_mask[best], binary, image_boxes[best], best_aoi, cid+1)
+            filled_binary = scipy.ndimage.morphology.binary_fill_holes((labels == box.label)).astype(np.uint8)
+
+            paste_to_mask(image_mask[best], filled_binary, image_boxes[best], best_aoi, cid+1)
             pass
         pass
     for i, image  in enumerate(images):
@@ -174,6 +191,7 @@ def process (path):
 class Command(BaseCommand):
     def add_arguments(self, parser):
         #parser.add_argument('--run', action='store_true', default=False, help='')
+        parser.add_argument('--remove', action='store_true', default=False, help='')
         pass
 
     def handle(self, *args, **options):
