@@ -2,9 +2,10 @@ Paperworks - Image Annotation with Paper and Markers
 ====================================================
 
 Contour annotation with mouse is tedious and stressful, and
-annotation precision is usually limited by the size of monitor.
+annotation precision is usually limited by the size of monitor (even
+with the help of touch screen and wacom tablets).
 The aim of this project is to revolutionize contour annotation
-with a great ancient invention: paper.  The paperwork image
+with a great ancient invention: the paper.  The paperwork image
 annotation process is high-precision, high-throughput and
 enjoyable.
 
