@@ -45,7 +45,8 @@ Sample scanned file in low-resolution:
 
 All detected colors are assigned an ID 1, 2, 3.  Mask file pixel values
 are color IDs.  Small false positive regions are visible from the images
-below.  These can be removed by post-processing, or by 
+below.  These can be removed by post-processing, or by setting
+`SMALL_OBJECT` threshold in the `params.py'.
 
 ![mask1](http://www.aaalgo.com/demos/paperworks/prostate/aligned/vis-100.gif)
 ![mask1](http://www.aaalgo.com/demos/paperworks/prostate/aligned/vis-101.gif)
