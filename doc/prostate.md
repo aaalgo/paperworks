@@ -31,15 +31,21 @@ Sample scanned file in low-resolution:
 # Post Processing
 
 ## Extraction of colors
-![colors](http://www.aaalgo.com/demos/paperworks/prostate/aligned/246-color.png)
+![colors](http://www.aaalgo.com/demos/paperworks/prostate/246-color.png)
 
 ## Split Into Color Channels
 
-![ch1](http://www.aaalgo.com/demos/paperworks/prostate/aligned/246-0.png)
-![ch2](http://www.aaalgo.com/demos/paperworks/prostate/aligned/246-1.png)
-![ch3](http://www.aaalgo.com/demos/paperworks/prostate/aligned/246-2.png)
+![ch1](http://www.aaalgo.com/demos/paperworks/prostate/246-0.png)
+![ch2](http://www.aaalgo.com/demos/paperworks/prostate/246-1.png)
+![ch3](http://www.aaalgo.com/demos/paperworks/prostate/246-2.png)
+
+[Browse All Intermediate Files](http://www.aaalgo.com/demos/paperworks/prostate/aligned/)
 
 # Mask Files Produced
+
+All detected colors are assigned an ID 1, 2, 3.  Mask file pixel values
+are color IDs.  Small false positive regions are visible from the images
+below.  These can be removed by post-processing, or by 
 
 ![mask1](http://www.aaalgo.com/demos/paperworks/prostate/aligned/vis-100.gif)
 ![mask1](http://www.aaalgo.com/demos/paperworks/prostate/aligned/vis-101.gif)
