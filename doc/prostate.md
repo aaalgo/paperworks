@@ -14,16 +14,22 @@ The input images are from
 # Task Generation
 
 The 372 images are tiled and organized into 62 PDF pages.
-These PDF pages are divided into 4 PDF files, each with 20 pages at
+These PDF pages are divided into 4 PDF job files, each with 20 pages at
 most.
 
 [Browse Task PDF files](http://www.aaalgo.com/demos/paperworks/prostate/jobs/)
 
 # Hand Annotation and Scanning
 
+The job files are printed and hand-annotated with color markers.
+The pages are then scanned.  Scanning can be done in any order or
+orientation; paperworks automatically registers the images by 
+barcode and by the anchor circles.
+
 Sample scanned file in low-resolution:
 
-![scan](http://www.aaalgo.com/demos/paperworks/prostate/scan/out0.jpg)
+![scan0](http://www.aaalgo.com/demos/paperworks/prostate/scan/out0.jpg)
+![scan1](http://www.aaalgo.com/demos/paperworks/prostate/scan/out1.jpg)
 
 
 [Browse Sample TIFF Files](http://www.aaalgo.com/demos/paperworks/prostate/scan/)
