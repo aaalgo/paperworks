@@ -42,6 +42,8 @@ scanimage -d 'replace_with_your_device' --format tiff --batch --batch-start 0 --
 
 # 4. Post Processing
 
+(These are intermediate results for debugging purpose.)
+
 ## Extraction of colors
 ![colors](http://www.aaalgo.com/demos/paperworks/prostate/246-color.png)
 
