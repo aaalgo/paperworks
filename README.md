@@ -1,5 +1,13 @@
 Paperworks - Image Annotation with Paper and Markers
 ====================================================
+
+Contour annotation with mouse is tedious and stressful, and
+annotation precision is usually limited by the size of monitor.
+The aim of this project is to revolutionize contour annotation
+with a great ancient invention: paper.  The paperwork image
+annotation process is high-precision, high-throughput and
+enjoyable.
+
 # [Demo: Prostate MRI Images](doc/prostate.md)
 
 # Workflow
