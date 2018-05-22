@@ -48,6 +48,9 @@ images) are collected and used to categorize colors.
 ![ch2](http://www.aaalgo.com/demos/paperworks/prostate/246-1.png)
 ![ch3](http://www.aaalgo.com/demos/paperworks/prostate/246-2.png)
 
+These color channels are then mapped back to the original images and
+used to generate the annotation masks.
+
 [Browse All Intermediate Files](http://www.aaalgo.com/demos/paperworks/prostate/aligned/)
 
 # 5. Mask Files Produced
