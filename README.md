@@ -1,5 +1,6 @@
 Paperworks - Image Annotation with Paper and Markers
 ====================================================
+# [Demo: Prostate MRI Images](doc/prostate.md)
 
 # Workflow
 
