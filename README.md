@@ -32,8 +32,10 @@ whenever possible.  Each PDF file has at most 20 pages.
 
 ## 2. Annotate with markers.
 ![marker](doc/marker.jpg)
+![wite](doc/witeout.jpg)
 
-Crayola markers work better than crayons!
+Crayola markers work better than crayons!  And mistakes can be easily corrected
+with wite-out.
 
 There are several sample boxes to collect colors used.
 Each color used must appear in one sample box (see below); it doesn't
