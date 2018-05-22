@@ -8,8 +8,28 @@ The input images are from
 
 ![image1](http://www.aaalgo.com/demos/paperworks/prostate/images/ProstateX-00003-t2tsesag-87368.png)
 ![image2](http://www.aaalgo.com/demos/paperworks/prostate/images/ProstateX-00014-t2tsesag-22089.png)
-![image3](http://www.aaalgo.com/demos/paperworks/prostate/images/ProstateX-00023-t2tsesag-02864.png)
 
 [Browse All Images](http://www.aaalgo.com/demos/paperworks/prostate/images/)
 
-2. 
+# Task Generation
+
+The 372 images are tiled and organized into 62 PDF pages.
+These PDF pages are divided into 4 PDF files, each with 20 pages at
+most.
+
+[Browse Task PDF files](http://www.aaalgo.com/demos/paperworks/prostate/jobs/)
+
+# Hand Annotation and Scanning
+
+Sample scanned file in low-resolution:
+
+![scan](http://www.aaalgo.com/demos/paperworks/prostate/scan/out0.jpg)
+
+
+[Browse Sample TIFF Files](http://www.aaalgo.com/demos/paperworks/prostate/scan/)
+
+# Post Processing
+
+
+[Browse Mask Files](http://www.aaalgo.com/demos/paperworks/prostate/masks/)
+
