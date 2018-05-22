@@ -26,11 +26,17 @@ The pages are then scanned.  Scanning can be done in any order or
 orientation; paperworks automatically registers the images by 
 barcode and by the anchor circles.
 
-Sample scanned file in low-resolution:
+The recommended scanning resolution is 200 dpi.
+Sample files in low-resolution:
 
 ![scan0](http://www.aaalgo.com/demos/paperworks/prostate/scan/out0.jpg)
 ![scan1](http://www.aaalgo.com/demos/paperworks/prostate/scan/out1.jpg)
 
+A batch of files can be scanned using a command like the one below.
+Different scanners might have different `--mode` parameters.
+```bash
+scanimage -d 'replace_with_your_device' --format tiff --batch --batch-start 0 --batch-count 20 -p --resolution 200 --mode '24bit Color'
+```
 
 [Browse Sample TIFF Files](http://www.aaalgo.com/demos/paperworks/prostate/scan/)
 
