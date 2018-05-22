@@ -30,6 +30,19 @@ Sample scanned file in low-resolution:
 
 # Post Processing
 
+## Extraction of colors
+![colors](http://www.aaalgo.com/demos/paperworks/prostate/aligned/246-color.png)
+
+## Split Into Color Channels
+
+![ch1](http://www.aaalgo.com/demos/paperworks/prostate/aligned/246-0.png)
+![ch2](http://www.aaalgo.com/demos/paperworks/prostate/aligned/246-1.png)
+![ch3](http://www.aaalgo.com/demos/paperworks/prostate/aligned/246-2.png)
+
+# Mask Files Produced
+
+![mask1](http://www.aaalgo.com/demos/paperworks/prostate/aligned/vis-100.gif)
+![mask1](http://www.aaalgo.com/demos/paperworks/prostate/aligned/vis-101.gif)
 
 [Browse Mask Files](http://www.aaalgo.com/demos/paperworks/prostate/masks/)
 
