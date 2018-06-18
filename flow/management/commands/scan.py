@@ -108,8 +108,8 @@ def process (path):
     ############################################################
 
     image = cv2.imread(path, cv2.IMREAD_COLOR) #.astype(np.float32)
-    image = cv2.GaussianBlur(image, (9, 9), 3)
-    image = normalize(image, LAYOUT)
+    image_blur = cv2.GaussianBlur(image, (9, 9), 3)
+    image = normalize(image_blur, image, LAYOUT)
 
     cv2.imwrite('aligned/%d-color.png' % scan.id, filter_color(image))
 

@@ -72,7 +72,7 @@ def detect_circles (gray, off):
     centers = []
     X0, Y0 = off
     for box in measure.regionprops(labels):
-        if box.area < 2000:
+        if box.area < 1500:
             continue
         #print(box.bbox)
         y0,x0,y1,x1 = expand(box.bbox, binary.shape, 10)
@@ -169,9 +169,11 @@ def crop_margin (image, gray):
     y0, x0, y1, x1 = expand(bbox2(black), black.shape, 20)
     return image[y0:y1, x0:x1], gray[y0:y1, x0:x1]
 
-def normalize (image, layout):
+def normalize (image, image_raw, layout):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
+
+    image = image_raw
 
     image, gray = crop_margin(image, gray)
 
